@@ -1,9 +1,10 @@
 local utils = require 'mp.utils'
 local options = require 'mp.options'
 
-local messages = nil
+local messages = {}
 local chat_overlay = nil
 local chat_hidden = false
+local download_finished = false
 
 local is_windows = package.config:sub(1,1) ~= "/"
 local xdg_data_home = os.getenv("XDG_DATA_HOME") or "~/.local/share"
@@ -19,6 +20,7 @@ opts['message-duration'] = 10000
 opts['max-message-line-length'] = 40
 opts['message-gap'] = 10
 opts['anchor'] = 1
+opts['parse-interval'] = 0.5
 
 options.read_options(opts)
 options.read_options(opts, "mpv-youtube-chat")
@@ -155,13 +157,18 @@ function file_exists(name)
     end
 end
 
+function on_download_finished()
+    download_finished = true
+end
+
 function download_live_chat(url, filename)
     if file_exists(filename) then return end
-    mp.command_native({
+    mp.command_native_async({
         name = "subprocess",
         args = {
             opts['yt-dlp-path'],
             '--skip-download',
+	    '--no-part',
             '--sub-langs=live_chat',
             url,
             '--write-sub',
@@ -170,7 +177,7 @@ function download_live_chat(url, filename)
             '-P',
             opts['live-chat-directory']
         }
-    })
+    }, on_download_finished)
 end
 
 -- TODO: better way to do this that gives more consistent brightness in colors?
@@ -189,10 +196,19 @@ function swap_color_string(str)
     return b .. g .. r
 end
 
-function generate_messages(live_chat_json)
-
-    local result = {}
-    for line in io.lines(live_chat_json) do
+function update_messages(live_chat_json, last)
+    local file = io.open(live_chat_json, 'rb')
+    file:seek('set', last)
+    while true do
+        local line = file:read('*l')
+        if not line then
+            if not download_finished then
+                last = file:seek()
+                mp.add_timeout(opts['parse-interval'], function() update_messages(live_chat_json, last) end)
+            end
+            file:close()
+            return
+        end
         local entry = utils.parse_json(line)
         if entry.replayChatItemAction then
             local time = tonumber(
@@ -228,7 +244,7 @@ function generate_messages(live_chat_json)
                             end
                         end
 
-                        result[#result+1] = {
+                        messages[#messages+1] = {
                             type = NORMAL,
                             author = author,
                             author_color = color,
@@ -269,7 +285,7 @@ function generate_messages(live_chat_json)
                             message = nil
                         end
 
-                        result[#result+1] = {
+                        messages[#messages+1] = {
                             type = SUPERCHAT,
                             author = author,
                             money = money,
@@ -284,7 +300,20 @@ function generate_messages(live_chat_json)
             end
         end
     end
-    return result
+end
+
+function wait_for_file(filename, generating_overlay)
+    if filename ~= nil and file_exists(filename) then
+        update_messages(filename, 0)
+        if not chat_overlay then
+            chat_overlay = mp.create_osd_overlay("ass-events")
+            chat_overlay.z = -1
+        end
+        update_chat_overlay(mp.get_property_native("time-pos"))
+        generating_overlay:remove()
+    else
+        mp.add_timeout(opts['parse-interval'], function() wait_for_file(filename, generating_overlay) end)
+    end
 end
 
 function load_live_chat(filename, interactive)
@@ -310,7 +339,7 @@ function load_live_chat(filename, interactive)
                         id
                     )
 
-                    generating_overlay.data = 'Downloading live chat replay...'
+                    generating_overlay.data = 'Downloading live chat...'
                     generating_overlay:update()
 
                     download_live_chat(external_filename, filename)
@@ -323,27 +352,7 @@ function load_live_chat(filename, interactive)
         end
     end
 
-    generating_overlay.data = 'Parsing live chat replay...'
-    generating_overlay:update()
-
-    if filename ~= nil and file_exists(filename) then
-        messages = generate_messages(filename)
-    else
-        generating_overlay:remove()
-        if interactive then
-            mp.command('show-text "Unable to find live chat replay file!"')
-        end
-        return
-    end
-
-    generating_overlay:remove()
-
-    if not chat_overlay then
-        chat_overlay = mp.create_osd_overlay("ass-events")
-        chat_overlay.z = -1
-    end
-
-    update_chat_overlay(mp.get_property_native("time-pos"))
+    wait_for_file(filename, generating_overlay)
 end
 
 function _load_live_chat(_, filename)
@@ -351,7 +360,7 @@ function _load_live_chat(_, filename)
 end
 
 function update_chat_overlay(time)
-    if chat_hidden or chat_overlay == nil or messages == nil or time == nil then
+    if chat_hidden or chat_overlay == nil or messages == {} or time == nil then
         return
     end
 
@@ -418,7 +427,7 @@ function set_chat_anchor(anchor)
 end
 
 function reset()
-    messages = nil
+    messages = {}
     if chat_overlay then
         chat_overlay:remove()
     end
