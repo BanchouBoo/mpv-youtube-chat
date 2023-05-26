@@ -238,10 +238,8 @@ function generate_messages(live_chat_json)
                     elseif action.addChatItemAction.item.liveChatPaidMessageRenderer then
                         local liveChatPaidMessageRenderer = action.addChatItemAction.item.liveChatPaidMessageRenderer
 
-                        local border_color = liveChatPaidMessageRenderer.bodyBackgroundColor
-                        border_color = bit32.band(border_color, bit32.lshift(1, 24) - 1)
-                        local text_color = liveChatPaidMessageRenderer.bodyTextColor
-                        text_color = bit32.band(text_color, bit32.lshift(1, 24) - 1)
+                        local border_color = liveChatPaidMessageRenderer.bodyBackgroundColor - 0xff000000
+                        local text_color = liveChatPaidMessageRenderer.bodyTextColor - 0xff000000
                         local money = liveChatPaidMessageRenderer.purchaseAmountText.simpleText
 
                         local author
