@@ -13,8 +13,13 @@ opts['auto-load'] = false
 opts['live-chat-directory'] = is_windows and 'C:/' or (xdg_data_home .. '/youtube-live-chats')
 opts['yt-dlp-path'] = 'yt-dlp'
 opts['show-author'] = true
-opts['color'] = 'random'
+opts['author-color'] = 'random'
+opts['author-border-color'] = '000000'
+opts['message-color'] = 'ffffff'
+opts['message-border-color'] = '000000'
+opts['font'] = mp.get_property_native('osd-font')
 opts['font-size'] = 16
+opts['border-size'] = 2
 opts['message-duration'] = 10000
 opts['max-message-line-length'] = 40
 opts['message-gap'] = 10
@@ -66,24 +71,22 @@ function format_message(message)
     for line in lines do
         local formatting = '{\\an' .. opts['anchor'] .. '}'
                         .. '{\\fs' .. opts['font-size'] .. '}'
+                        .. '{\\fn' .. opts['font'] .. '}'
+                        .. '{\\bord' .. opts['border-size'] .. '}'
+                        .. string.format(
+                               '{\\1c&H%s&}',
+                               swap_color_string(opts['message-color'])
+                           )
+                        .. string.format(
+                               '{\\3c&H%s&}',
+                               swap_color_string(opts['message-border-color'])
+                           )
         if message.type == SUPERCHAT then
             formatting = formatting .. string.format(
                 '{\\1c&H%s&}{\\3c&%s&}',
                 swap_color_string(string.format('%06x', message.text_color)),
                 swap_color_string(string.format('%06x', message.border_color))
             )
-        elseif not opts['show-author'] then
-            if opts['color'] == 'random' then
-                formatting = formatting .. string.format(
-                    '{\\1c&H%06x&}',
-                    message.author_color
-                )
-            elseif opts['color'] ~= 'none' then
-                formatting = formatting .. string.format(
-                    '{\\1c&H%s&}',
-                    swap_color_string(opts['color'])
-                )
-            end
         end
         local message_string = formatting
                             .. line
@@ -103,24 +106,33 @@ end
 function chat_message_to_string(message)
     if message.type == NORMAL then
         if opts['show-author'] then
-            if opts['color'] == 'random' then
+            if opts['author-color'] == 'random' then
                 return string.format(
-                    '{\\1c&H%06x&}%s{\\1c&Hffffff&}: %s',
+                    '{\\1c&H%06x&}{\\3c&H%s&}%s{\\1c&H%s&}{\\3c&H%s&}: %s',
                     message.author_color,
+                    swap_color_string(opts['author-border-color']),
                     message.author,
+                    swap_color_string(opts['message-color']),
+                    swap_color_string(opts['message-border-color']),
                     break_message(message.contents, message.author:len() + 2)
                 )
-            elseif opts['color'] == 'none' then
+            elseif opts['author-color'] == 'none' then
                 return string.format(
-                    '%s: %s',
+                    '{\\3c&H%s&}%s{\\1c&H%s&}{\\3c&H%s&}: %s',
+                    swap_color_string(opts['author-border-color']),
                     message.author,
+                    swap_color_string(opts['message-color']),
+                    swap_color_string(opts['message-border-color']),
                     break_message(message.contents, message.author:len() + 2)
                 )
             else
                 return string.format(
-                    '{\\1c&H%s&}%s{\\1c&Hffffff&}: %s',
-                    swap_color_string(opts['color']),
+                    '{\\1c&H%s&}{\\3c&H%s&}%s{\\1c&H%s&}{\\3c&H%s&}: %s',
+                    swap_color_string(opts['author-color']),
+                    swap_color_string(opts['author-border-color']),
                     message.author,
+                    swap_color_string(opts['message-color']),
+                    swap_color_string(opts['message-border-color']),
                     break_message(message.contents, message.author:len() + 2)
                 )
             end
