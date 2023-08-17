@@ -290,7 +290,6 @@ function generate_messages(live_chat_json)
                         }
                     end
                 end
-                ::action_continue::
             end
         end
     end
