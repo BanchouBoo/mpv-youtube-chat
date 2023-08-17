@@ -26,8 +26,13 @@ To bind an action, use `script-message` (e.g. `CTRL+j script-message load-chat`)
 - `live-chat-directory` (default `C:/` on Windows and `XDG_DATA_HOME/youtube-live-chats` on all other platforms) -> the directory to download `live_chat.json` files to
 - `yt-dlp-path` (default `yt-dlp`) -> the path to your `yt-dlp` executable
 - `show-author` (default `yes`) -> show the author's name with their message
-- `color` (default `random`) -> color of the author's name in the message, or the whole message if `show-author` is set to `no`, available values are `random`, `none`, or a specific hex value (without a #)
+- `author-color` (default `random`) -> color of the author's name in the message, available values are `random`, `none`, or a specific hex value (without a #)
+- `author-border-color` (default `000000`) -> color of the borders around the author's name
+- `message-color` (default to `ffffff`) -> color of the body text of a message
+- `message-border-color` (default `000000`) -> color of the borders around the body text of a message
+- `font` (default to the osd font) -> font to use for chat messages
 - `font-size` (default `16`) -> font size for chat messages
+- `border-size` (default `2`) -> border size for chat messages
 - `message-duration` (default `10000`) -> duration that each message is shown for in miliseconds
 - `max-message-line-length` (default `40`) -> the amount of characters before a message breaks into a new line, with messages only breaking at word boundaries
 - `message-gap` (default `10`) -> additional spacing between chat messages, given as a percentage of the font height
