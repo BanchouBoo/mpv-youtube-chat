@@ -6,7 +6,7 @@ local chat_overlay = nil
 local chat_hidden = false
 
 local is_windows = package.config:sub(1,1) ~= "/"
-local xdg_data_home = os.getenv("XDG_DATA_HOME") or "~/.local/share"
+local xdg_data_home = os.getenv("XDG_DATA_HOME") or (os.getenv("HOME") .. "/.local/share")
 
 local opts = {}
 opts['auto-load'] = false
