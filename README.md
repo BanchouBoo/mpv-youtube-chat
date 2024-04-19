@@ -39,6 +39,6 @@ To bind an action, use `script-message` (e.g. `CTRL+j script-message load-chat`)
 - `anchor` (default `1`) -> where chat displays on the screen in numpad notation (`1` is bottom-left, `7` is top-left, `9` is top-right, etc.)
 
 ## Plans
-- Parse live chats as they download, circumventing the need to wait for the whole thing to download before loading the chat and also allowing currently active streams and premiers to be supported
+- ~~Parse live chats as they download, circumventing the need to wait for the whole thing to download before loading the chat~~ and also allowing currently active streams and premiers to be supported. Because yt-dlp downloads live chats to a fragment file first before merging it to the main JSON file, most recent chats in active streams aren't displayed. You need to seek the stream back ~20s to get them shown.
 - Support more chat message types. Currently regular messages and superchats (possible that some might be missed as of right now, there seems to be multiple formats for different kinds of messages and I'm not entirely sure what the difference is between these message formats are, if any) both work, I still need to add support memberships and paid stickers and possibly other kinds of messages I'm unaware of.
 - Better message rendering. If chat is anchored to the right, every line of every message will also be anchored to the right which looks rather unpleasant. See if I can have the chat be anchored to the right while allowing individual lines to be anchored to the left
