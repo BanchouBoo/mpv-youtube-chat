@@ -22,6 +22,7 @@ opts['font-size'] = 16
 opts['border-size'] = 2
 opts['message-duration'] = 10000
 opts['max-message-line-length'] = 40
+opts['message-break-anywhere'] = false
 opts['message-gap'] = 10
 opts['anchor'] = 1
 
@@ -43,21 +44,32 @@ local function split_string(input)
 end
 
 function break_message(message, initial_length)
-    if opts['max-message-line-length'] <= 0 then
+    local max_line_length = opts['max-message-line-length']
+    if max_line_length <= 0 then
         return message
     end
 
     local current_length = initial_length
     local result = ''
 
-    for _,v in ipairs(split_string(message)) do
-        current_length = current_length + #v
+    if opts['message-break-anywhere'] then
+        local lines = {}
+        while #message > 0 do
+            local newline = message:sub(1, max_line_length)
+            table.insert(lines, newline)
+            message = message:sub(max_line_length, #message)
+        end
+        result = table.concat(lines, '\n')
+    else
+        for _,v in ipairs(split_string(message)) do
+            current_length = current_length + #v
 
-        if current_length > opts['max-message-line-length'] then
-            result = result .. '\n' .. v
-            current_length = #v
-        else
-            result = result .. v
+            if current_length > max_line_length then
+                result = result .. '\n' .. v
+                current_length = #v
+            else
+                result = result .. v
+            end
         end
     end
 
@@ -435,6 +447,18 @@ function set_chat_anchor(anchor)
     end
 end
 
+function set_break_anywhere(state)
+    if state == nil then
+        opts['message-break-anywhere'] = not opts['message-break-anywhere']
+    else
+        opts['message-break-anywhere'] = state == 'yes'
+    end
+
+    if chat_overlay then
+        update_chat_overlay(mp.get_property_native("time-pos"))
+    end
+end
+
 function reset()
     messages = nil
     if chat_overlay then
@@ -447,6 +471,7 @@ mp.add_key_binding(nil, "load-chat", load_live_chat_interactive)
 mp.add_key_binding(nil, "unload-chat", reset)
 mp.add_key_binding(nil, "chat-hidden", set_chat_hidden)
 mp.add_key_binding(nil, "chat-anchor", set_chat_anchor)
+mp.add_key_binding(nil, "break-anywhere", set_break_anywhere)
 
 if opts['auto-load'] then
     mp.register_event("file-loaded", _load_live_chat)

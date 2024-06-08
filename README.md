@@ -18,6 +18,7 @@ Binding `load-chat` to a keybinding and press it in a video. If the video is bei
 - `unload-chat` -> unloads the currently loaded live chat
 - `chat-hidden` -> toggles the visibility of the live chat, optionally takes `yes` or `no` as a parameter to set it to that value instead of toggling it
 - `chat-anchor` -> cycle the `anchor` option (see [Options](#Options)) from 1 through 9, optionally takes a value to set it directly
+- `break-anywhere` -> toggles the value of the `message-break-anywhere` option, optionally takes `yes` or `no` as a parameter to set it to that value instead of toggling it
 
 To bind an action, use `script-message` (e.g. `CTRL+j script-message load-chat`)
 
@@ -34,7 +35,8 @@ To bind an action, use `script-message` (e.g. `CTRL+j script-message load-chat`)
 - `font-size` (default `16`) -> font size for chat messages
 - `border-size` (default `2`) -> border size for chat messages
 - `message-duration` (default `10000`) -> duration that each message is shown for in miliseconds
-- `max-message-line-length` (default `40`) -> the amount of characters before a message breaks into a new line, with messages only breaking at word boundaries
+- `max-message-line-length` (default `40`) -> the amount of characters before a message breaks into a new line
+- `message-break-anywhere` (default `no`) -> whether line breaks in messages can happen anywhere or only after whole words
 - `message-gap` (default `10`) -> additional spacing between chat messages, given as a percentage of the font height
 - `anchor` (default `1`) -> where chat displays on the screen in numpad notation (`1` is bottom-left, `7` is top-left, `9` is top-right, etc.)
 
