@@ -17,7 +17,7 @@ Binding `load-chat` to a keybinding and press it in a video. If the video is bei
 - `load-chat` -> attempts to load the live chat replay as specified in [Usage](#Usage)
 - `unload-chat` -> unloads the currently loaded live chat
 - `chat-hidden` -> toggles the visibility of the live chat, optionally takes `yes` or `no` as a parameter to set it to that value instead of toggling it
-- `chat-anchor` -> cycle the `chat-anchor` (see [Options](#Options)) option from 1 through 9, optionally takes a value to set it directly
+- `chat-anchor` -> cycle the `anchor` option (see [Options](#Options)) from 1 through 9, optionally takes a value to set it directly
 
 To bind an action, use `script-message` (e.g. `CTRL+j script-message load-chat`)
 
