@@ -185,6 +185,18 @@ function download_live_chat(url, filename)
     })
 end
 
+function live_chat_exists_remote(url)
+    local result = mp.command_native({
+        name = "subprocess",
+        capture_stdout = true,
+        args = { opts['yt-dlp-path'], url, '--list-subs', '--quiet' }
+    })
+    if result.status == 0 then
+        return string.find(result.stdout, "live_chat")
+    end
+    return false
+end
+
 -- TODO: better way to do this that gives more consistent brightness in colors?
 function string_to_color(str)
     local hash = 5381
@@ -306,24 +318,21 @@ function load_live_chat(filename, interactive)
         local is_network = path:find('^http://') ~= nil or
                            path:find('^https://') ~= nil
         if is_network then
-            local track_list = mp.get_property_native("track-list")
-            for _,v in pairs(track_list) do
-                if v.type == 'sub' and v.lang == 'live_chat' then
-                    local external_filename = v['external-filename']
-                    external_filename = external_filename:gsub(".*http", "http")
+            local id = path:gsub("^.*\\?v=", ""):gsub("&.*", "")
+            filename = string.format(
+                "%s/%s.live_chat.json",
+                opts['live-chat-directory'],
+                id
+            )
 
-                    local id = external_filename:gsub("^.*\\?v=", ""):gsub("&.*", "")
-                    filename = string.format(
-                        "%s/%s.live_chat.json",
-                        opts['live-chat-directory'],
-                        id
-                    )
-
+            if not file_exists(filename) then
+                generating_overlay.data = 'Checking for live chat on remote...'
+                generating_overlay:update()
+                if live_chat_exists_remote(path) then
                     generating_overlay.data = 'Downloading live chat replay...'
                     generating_overlay:update()
 
-                    download_live_chat(external_filename, filename)
-                    break
+                    download_live_chat(path, filename)
                 end
             end
         else
